@@ -6,14 +6,7 @@ open Format
 
 module Frame = Frame_piqi
 
-type field =
-  | Magic
-  | Version
-  | Bfd_arch
-  | Bfd_mach
-  | Frames
-  | Toc
-  [@@deriving enum, variants]
+open Frame_field
 
 type header = {
   magic : int64;
@@ -48,6 +41,9 @@ type t = reader
     specifications is not enough, and some information is missing in the
     trace header, in particular we need endianness information.
 *)
+
+let a = Frame_mach.Arm.of_enum
+
 module Arch = struct
   let arm n = Frame_mach.Arm.(match of_enum n with
       | Some V4 -> Some `armv4
@@ -105,6 +101,8 @@ let arch ~buf ~pos =
   match Frame_arch.of_enum (int ~buf ~pos) with
   | None -> parse_error "Unknown BFD arch id: %d" (int ~buf ~pos)
   | Some a -> a
+
+let header b = raise Not_found
 
 let header buf = {
   magic    = field magic    int64    buf;

@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 5b609f7614c506a9b5ee564a95aeb514) *)
+(* DO NOT EDIT (digest: 37e7d4b061d5b6cb6429db6b04a71842) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -105,10 +105,7 @@ module OASISString = struct
         ok := false;
       incr str_idx
     done;
-    if !what_idx = String.length what then
-      true
-    else
-      false
+    !what_idx = String.length what
 
 
   let strip_starts_with ~what str =
@@ -131,10 +128,7 @@ module OASISString = struct
         ok := false;
       decr str_idx
     done;
-    if !what_idx = -1 then
-      true
-    else
-      false
+    !what_idx = -1
 
 
   let strip_ends_with ~what str =
@@ -440,7 +434,7 @@ module OASISExpr = struct
 end
 
 
-# 443 "myocamlbuild.ml"
+# 437 "myocamlbuild.ml"
 module BaseEnvLight = struct
 (* # 22 "src/base/BaseEnvLight.ml" *)
 
@@ -520,7 +514,7 @@ module BaseEnvLight = struct
 end
 
 
-# 523 "myocamlbuild.ml"
+# 517 "myocamlbuild.ml"
 module MyOCamlbuildFindlib = struct
 (* # 22 "src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml" *)
 
@@ -746,6 +740,9 @@ module MyOCamlbuildBase = struct
 (* # 110 "src/plugins/ocamlbuild/MyOCamlbuildBase.ml" *)
 
 
+  let env_filename = Pathname.basename BaseEnvLight.default_filename
+
+
   let dispatch_combine lst =
     fun e ->
       List.iter
@@ -878,15 +875,19 @@ module MyOCamlbuildBase = struct
 end
 
 
-# 881 "myocamlbuild.ml"
+# 878 "myocamlbuild.ml"
 open Ocamlbuild_plugin;;
 let package_default =
   {
      MyOCamlbuildBase.lib_ocaml =
-       [("bap-frames", ["lib"], []); ("bap-plugin-frames", ["plugin"], [])];
+       [
+          ("bap-base-frames", ["lib/base"], []);
+          ("bap-frames", ["lib/frames"], []);
+          ("bap-plugin-frames", ["plugin"], [])
+       ];
      lib_c = [];
      flags = [];
-     includes = [("plugin", ["lib"])]
+     includes = [("plugin", ["lib/frames"]); ("lib/frames", ["lib/base"])]
   }
   ;;
 
@@ -894,7 +895,7 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 898 "myocamlbuild.ml"
+# 899 "myocamlbuild.ml"
 (* OASIS_STOP *)
 let oasis_env =
   BaseEnvLight.load
@@ -904,13 +905,13 @@ let nonempty = function (A s) -> String.length s <> 0 | _ -> true
 let expand s = BaseEnvLight.var_expand s oasis_env;;
 
 rule "piqic: piqi -> .ml"
-  ~prods:["lib/%_piqi.ml"]
+  ~prods:["lib/frames/%_piqi.ml"]
   ~deps:["piqi/%.piqi"]
   (fun env _ ->
      Cmd(S (List.filter nonempty [
          A (expand "${piqic}");
          A (expand "${piqic_flags}");
-         A "-C"; A "lib";
+         A "-C"; A "lib/frames";
          A "-I"; A "../piqi";
          A (env "piqi/%.piqi")])));;
 
